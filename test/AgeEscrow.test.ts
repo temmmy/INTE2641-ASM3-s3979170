@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from "chai";
 import "@nomicfoundation/hardhat-chai-matchers";
-import * as hre from "hardhat";
+import hre from "hardhat";
 import {
   loadFixture,
   time,
-} from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import type { Contract } from "ethers";
+} from "@nomicfoundation/hardhat-toolbox/network-helpers.js";
+import type { BaseContract } from "ethers";
 import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { AbiCoder } from "ethers";
 
 const { ethers } = hre;
 
-const ZERO_BYTES32 = ethers.ZeroHash;
-const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const abiCoder = new AbiCoder();
 
-type AgeEscrowContract = Contract & {
+type AgeEscrowContract = BaseContract & {
   connect: (signer: HardhatEthersSigner) => AgeEscrowContract;
   createTask: (...args: any[]) => Promise<any>;
   fundTask: (...args: any[]) => Promise<any>;
@@ -23,14 +24,16 @@ type AgeEscrowContract = Contract & {
   refund: (...args: any[]) => Promise<any>;
   isFunded: (taskId: number) => Promise<boolean>;
   tasks: (taskId: number) => Promise<any>;
+  getAddress: () => Promise<string>;
 };
 
-type MockEASContract = Contract & {
+type MockEASContract = BaseContract & {
   connect: (signer: HardhatEthersSigner) => MockEASContract;
   setAttestation: (attestation: any) => Promise<any>;
+  getAddress: () => Promise<string>;
 };
 
-type TestTokenContract = Contract & {
+type TestTokenContract = BaseContract & {
   connect: (signer: HardhatEthersSigner) => TestTokenContract;
   getAddress: () => Promise<string>;
   mint: (to: string, amount: bigint) => Promise<any>;
@@ -55,14 +58,14 @@ describe("AgeEscrow", () => {
     const schemaUid = ethers.id("TASK_COMPLETED_SCHEMA_UID");
 
     const MockEAS = await ethers.getContractFactory("MockEAS");
-    const eas = (await MockEAS.deploy()) as MockEASContract;
+    const eas = (await MockEAS.deploy()) as unknown as MockEASContract;
     await eas.waitForDeployment();
 
     const AgeEscrow = await ethers.getContractFactory("AgeEscrow");
     const escrow = (await AgeEscrow.deploy(
       await eas.getAddress(),
       schemaUid
-    )) as AgeEscrowContract;
+    )) as unknown as AgeEscrowContract;
     await escrow.waitForDeployment();
 
     return { escrow, eas, client, worker, attestor, stranger, schemaUid };
@@ -268,7 +271,7 @@ describe("AgeEscrow", () => {
     it("funds ERC20 tasks", async () => {
       const context = await loadFixture(deployFixture);
       const TestToken = await ethers.getContractFactory("TestToken");
-      const token = (await TestToken.deploy()) as TestTokenContract;
+      const token = (await TestToken.deploy()) as unknown as TestTokenContract;
       await token.waitForDeployment();
 
       const amount = ethers.parseEther("5");
@@ -332,15 +335,11 @@ describe("AgeEscrow", () => {
       const uid = await seedAttestation(context, { taskId: 1 });
 
       const before = await ethers.provider.getBalance(context.worker.address);
-      const tx = await context.escrow.releasePayment(1, uid);
+      const tx = await context.escrow.connect(context.client).releasePayment(1, uid);
       const receipt = await tx.wait();
-      const gasUsed = BigInt(receipt?.gasUsed ?? 0);
-      const effectivePrice = BigInt(receipt?.gasPrice ?? 0);
 
       const after = await ethers.provider.getBalance(context.worker.address);
-      expect(after - before).to.equal(
-        ethers.parseEther("1") - gasUsed * effectivePrice
-      );
+      expect(after - before).to.equal(ethers.parseEther("1"));
 
       const task = await context.escrow.tasks(1);
       expect(task.status).to.equal(2); // Paid
@@ -446,7 +445,7 @@ describe("AgeEscrow", () => {
     it("pays ERC20 worker", async () => {
       const context = await loadFixture(deployFixture);
       const TestToken = await ethers.getContractFactory("TestToken");
-      const token = (await TestToken.deploy()) as TestTokenContract;
+      const token = (await TestToken.deploy()) as unknown as TestTokenContract;
       await token.waitForDeployment();
 
       const amount = ethers.parseEther("5");
