@@ -40,7 +40,7 @@
 ### 4. Frontend Development Rules
 - **Use exact tech stack**: Next.js 14, TypeScript, Tailwind, shadcn/ui, wagmi/viem, RainbowKit
 - **Implement role-based UI gating** - show actions only to appropriate addresses
-- **Always validate network** - enforce Sepolia testnet usage
+- **Always validate network** - enforce Base Sepolia testnet usage
 - **Handle all transaction states** - pending, success, error with proper toasts
 - **Use proper TypeScript types** matching the contract structs
 - **Implement wallet connection** via RainbowKit only
@@ -55,7 +55,7 @@
 
 ### 6. Environment & Configuration
 - **Use environment variables** for all configuration:
-  - `NEXT_PUBLIC_CHAIN_ID=11155111` (Sepolia)
+  - `NEXT_PUBLIC_CHAIN_ID=84532` (Base Sepolia)
   - `NEXT_PUBLIC_EAS_ADDRESS`
   - `NEXT_PUBLIC_SCHEMA_UID`
   - `NEXT_PUBLIC_ALCHEMY_API_KEY`
@@ -68,7 +68,7 @@
 - **Test both ETH and ERC-20** token flows
 - **Test edge cases**: deadline expiry, invalid attestations, wrong roles
 - **Test all user flows** end-to-end manually
-- **Verify contract deployment** on Sepolia before frontend integration
+- **Verify contract deployment** on Base Sepolia before frontend integration
 
 ### 8. Code Organization
 - **Follow the file structure** specified in PRD section 20
@@ -88,7 +88,7 @@
 - **Log important state changes** during development
 - **Use proper error boundaries** in React components
 - **Implement transaction receipt verification** for all mutations
-- **Test on Sepolia testnet** thoroughly before considering complete
+- **Test on Base Sepolia testnet** thoroughly before considering complete
 - **Verify EAS attestations** can be created and validated properly
 
 ## Development Workflow Rules
@@ -96,7 +96,7 @@
 ### Phase 1: Smart Contracts (Hours 5-14)
 1. Implement core AgeEscrow.sol with all specified functions
 2. Add comprehensive unit tests covering happy and edge cases
-3. Deploy to Sepolia and verify contract on Etherscan
+3. Deploy to Base Sepolia and verify contract on Etherscan
 4. Register TaskCompleted schema with EAS
 
 ### Phase 2: Frontend Foundation (Hours 15-20)
@@ -114,7 +114,7 @@
 ### Phase 4: Polish & Testing (Hours 31-48)
 1. Add proper error handling and user feedback
 2. Implement loading states and transaction toasts
-3. Test all flows end-to-end on Sepolia
+3. Test all flows end-to-end on Base Sepolia
 4. Write deployment scripts and documentation
 
 ## Critical Success Factors
@@ -123,14 +123,14 @@
 - **All transaction states must be handled** - no silent failures
 - **Role-based access must be enforced** - security critical
 - **Both ETH and ERC-20 flows must work** - per acceptance criteria
-- **Network enforcement must be strict** - Sepolia only
+- **Network enforcement must be strict** - Base Sepolia only
 - **Error messages must be actionable** - guide users to solutions
 
 ## Immediate Next Steps for AI Agents
 
 1. **Read the PRD thoroughly** before making any implementation decisions
 2. **Start with contract implementation** - it's the foundation
-3. **Test extensively on Sepolia** - don't assume localhost testing is sufficient
+3. **Test extensively on Base Sepolia** - don't assume localhost testing is sufficient
 4. **Follow the exact tech stack** - no substitutions without explicit approval
 5. **Implement security measures first** - never compromise on safety
 

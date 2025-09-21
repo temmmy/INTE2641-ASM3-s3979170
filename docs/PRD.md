@@ -5,7 +5,7 @@ This PRD is derived from your proposal and tuned for a 48-hour “build-and-demo
    Build a trust-minimized escrow dApp where a client funds a micro-task and payment is released to the worker only after a valid EAS attestation confirms completion. If the deadline passes with no attestation, the client can refund.
    Core primitive: Attestation-gated payout (portable, queryable completion receipts).
 
-Demo target: Run on localhost UI, connect to Sepolia RPC for real transactions. Sepolia is Ethereum’s primary public testnet for development. (Alchemy)
+Demo target: Run on localhost UI, connect to Base Sepolia RPC for real transactions. Base Sepolia is Ethereum’s primary public testnet for development. (Alchemy)
 
 No custom backend (static Next.js + wallet; contract + EAS on chain).
 
@@ -25,7 +25,7 @@ Refund path works after deadline without attestation.
 
 Clean, minimal UI with wallet connect; all flows finish in < 3 clicks each.
 
-Source available, with scripts to deploy contract to Sepolia and seed a test task.
+Source available, with scripts to deploy contract to Base Sepolia and seed a test task.
 
 Optional: show last N attestations for an address or schema.
 
@@ -49,7 +49,7 @@ Deploy also to Monad testnet (EVM-compatible, high TPS) for “scale” demo. (d
 
 Wallets: WalletConnect (needs WALLETCONNECT_PROJECT_ID).
 
-Chain & RPC: Sepolia via Alchemy (free key fast). Quickstart is documented by Alchemy. (Alchemy)
+Chain & RPC: Base Sepolia via Alchemy (free key fast). Quickstart is documented by Alchemy. (Alchemy)
 
 Contracts: Solidity ≥0.8.x (checked arithmetic by default), OpenZeppelin SafeERC20 utilities. (Solidity Documentation)
 
@@ -66,10 +66,10 @@ Attestations: EAS contracts/SDK; initialize with chain-specific EAS address. (Do
 
 /me — “My Tasks” (as Client/Worker); filter tabs.
 
-/attest — Guided form to issue EAS attestation (or deep-link to EAS Scan if preferred).
+External — Deep-link users to official EAS tooling to issue attestations.
 
 Global UI
-Header: Connect Wallet (RainbowKit), chain pill (Sepolia), theme toggle.
+Header: Connect Wallet (RainbowKit), chain pill (Base Sepolia), theme toggle.
 
 Toasts for TX lifecycle; empty states; error banners (network/account/allowance).
 
@@ -179,7 +179,7 @@ Use unchecked only when provably safe (gas micro-opt), else default checks. (Sol
 
 Register once via EAS SDK (front-end script or Hardhat task); store Schema UID in env/config.
 
-Initialize SDK with chain EAS address (docs provide per-chain addresses; Sepolia address available in EAS docs). (Attest)
+Initialize SDK with chain EAS address (docs provide per-chain addresses; Base Sepolia address available in EAS docs). (Attest)
 
 Attestation created by attestor references worker,client, and the taskId.
 
@@ -222,7 +222,7 @@ readContract for task view; writeContract for mutations. (Wagmi)
 
 For ETH funding use value:; for ERC-20 funding do approve → fund; show allowance.
 
-Network guard: if chainId !== Sepolia, prompt to switch.
+Network guard: if chainId !== Base Sepolia, prompt to switch.
 
 11. Data Model (Frontend Types)
     type Address = `0x${string}`;
@@ -243,7 +243,7 @@ attestationUid?: `0x${string}`;
 type CreateTaskInput = Omit<TaskView, 'status'|'workUri'|'attestationUid'> & { amount: bigint };
 
 12. Environments & Config
-    NEXT_PUBLIC_CHAIN_ID=11155111 (Sepolia). (ChainList)
+    NEXT_PUBLIC_CHAIN_ID=84532 (Base Sepolia). (ChainList)
 
 NEXT_PUBLIC_EAS_ADDRESS=<EAS contract>; NEXT_PUBLIC_SCHEMA_UID=<TaskCompleted schema UID>; (addresses documented & retrievable). (Attest)
 
@@ -262,7 +262,7 @@ Unit tests: basic status transitions, attestation validation, refund timing.
 Frontend
 npx create @rainbow-me/rainbowkit or add RainbowKit to Next.js app. (rainbowkit.com)
 
-Wire wagmi config to Sepolia + Alchemy RPC (Alchemy Quickstart). (Alchemy)
+Wire wagmi config to Base Sepolia + Alchemy RPC (Alchemy Quickstart). (Alchemy)
 
 Add contract ABI, env addresses; build & run locally.
 
@@ -275,7 +275,7 @@ Release Payment validates EAS attestation by UID against schema & attestor; tran
 
 Refund after deadline if unpaid.
 
-UI enforces role gating; network guard to Sepolia.
+UI enforces role gating; network guard to Base Sepolia.
 
 Clear TX states (pending/success/fail).
 
@@ -303,7 +303,7 @@ Or deep-link user to EASScan to create attestation (copy UID). (optimism-sepolia
 
 Errors:
 
-Wrong network → “Switch to Sepolia to continue.”
+Wrong network → “Switch to Base Sepolia to continue.”
 
 Insufficient funds/allowance → inline helper text + CTA to approve/add funds.
 
@@ -320,7 +320,7 @@ Invalid attestation (wrong schema/attestor/recipient/taskId) reverts.
 
 Integration (manual):
 
-Deploy contract & register schema on Sepolia.
+Deploy contract & register schema on Base Sepolia.
 
 Create+Fund, Submit, Attest (via EAS SDK or EASScan), Release.
 
@@ -357,7 +357,7 @@ App
 
 /components/TaskForm.tsx, /components/TaskDetail.tsx
 
-/lib/wagmi.ts (config Sepolia/Alchemy, RainbowKit)
+/lib/wagmi.ts (config Base Sepolia/Alchemy, RainbowKit)
 
 /lib/contract.ts (ABI, addresses)
 
@@ -368,7 +368,7 @@ App
 
 H5–10: Implement AgeEscrow.sol + unit tests (ETH first, then ERC-20). OpenZeppelin + EAS interface. (OpenZeppelin Docs)
 
-H11–14: Deploy to Sepolia (Hardhat). (Hardhat)
+H11–14: Deploy to Base Sepolia (Hardhat). (Hardhat)
 
 H15–20: Create Task UI + write flows (approve/fund if ERC-20). (Wagmi)
 
@@ -383,7 +383,7 @@ H37–44: Manual test script runs end-to-end.
 H45–48: README + demo script + (optional) stretch.
 
 22. Demo Script (5 minutes)
-    Connect wallet (Sepolia) → Create & Fund task (0.01 ETH).
+    Connect wallet (Base Sepolia) → Create & Fund task (0.01 ETH).
 
 Switch to worker account → Submit Work (GitHub gist).
 
@@ -400,7 +400,7 @@ EAS on-chain API (getAttestation(uid); validate existence). (Ethereum (ETH) Bloc
 
 RainbowKit / wagmi / viem quickstart & actions. (rainbowkit.com)
 
-Sepolia testnet overview & RPC access. (Alchemy)
+Base Sepolia testnet overview & RPC access. (Alchemy)
 
 Solidity 0.8 checked arithmetic (no SafeMath needed). (Solidity Documentation)
 

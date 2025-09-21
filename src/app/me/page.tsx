@@ -5,9 +5,13 @@ import { useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useQueries } from "@tanstack/react-query";
 
+import { ClipboardList, UserCheck } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { env } from "@/lib/env";
 import { listTasksFor } from "@/lib/local-tasks";
 import { readTask } from "@/lib/task-service";
@@ -26,9 +30,10 @@ export default function MyTasksPage() {
 
   const storedEntries = useMemo(() => {
     if (!address || !isConnected) return { client: [], worker: [] };
+    const userAddress = address as string;
     return {
-      client: listTasksFor(address, "client", env.chainId),
-      worker: listTasksFor(address, "worker", env.chainId),
+      client: listTasksFor(userAddress, "client", env.chainId),
+      worker: listTasksFor(userAddress, "worker", env.chainId),
     };
   }, [address, isConnected]);
 
@@ -52,12 +57,11 @@ export default function MyTasksPage() {
 
   if (!isConnected) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Connect your wallet</CardTitle>
-          <CardDescription>Connect a wallet to view tasks you have created or submitted.</CardDescription>
-        </CardHeader>
-      </Card>
+      <EmptyState
+        icon={<ClipboardList className="h-10 w-10" aria-hidden />}
+        title="Connect your wallet"
+        description="Connect a wallet to browse tasks you’ve created or contributed to."
+      />
     );
   }
 
@@ -95,27 +99,37 @@ export default function MyTasksPage() {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold">My tasks</h1>
-          <p className="text-sm text-muted-foreground">
-            Tasks you’ve created or contributed to, tracked locally for quick access.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/task/new">Create new task</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="My tasks"
+        description="Tasks you’ve created or contributed to are cached locally for quick access."
+        actions={
+          <Button asChild>
+            <Link href="/task/new">Create new task</Link>
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>As client</CardTitle>
-            <CardDescription>Escrows you created and funded.</CardDescription>
+        <Card className="border-border/70 bg-card/70">
+          <CardHeader className="flex flex-row items-center gap-3">
+            <ClipboardList className="h-5 w-5 text-primary" aria-hidden />
+            <div>
+              <CardTitle>As client</CardTitle>
+              <CardDescription>Escrows you created and funded.</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             {storedEntries.client.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No tasks yet — create one in seconds.</p>
+              <EmptyState
+                icon={<ClipboardList className="h-8 w-8" aria-hidden />}
+                title="No escrows yet"
+                description="Create your first task escrow in seconds."
+                action={
+                  <Button asChild size="sm">
+                    <Link href="/task/new">Create a task</Link>
+                  </Button>
+                }
+              />
             ) : (
               <ul className="space-y-3">
                 {storedEntries.client.map((entry) => renderTask(entry.id))}
@@ -124,14 +138,21 @@ export default function MyTasksPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>As worker</CardTitle>
-            <CardDescription>Tasks where you submitted work.</CardDescription>
+        <Card className="border-border/70 bg-card/70">
+          <CardHeader className="flex flex-row items-center gap-3">
+            <UserCheck className="h-5 w-5 text-primary" aria-hidden />
+            <div>
+              <CardTitle>As worker</CardTitle>
+              <CardDescription>Tasks where you submitted work.</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             {storedEntries.worker.length === 0 ? (
-              <p className="text-sm text-muted-foreground">You haven’t submitted any work yet.</p>
+              <EmptyState
+                icon={<UserCheck className="h-8 w-8" aria-hidden />}
+                title="No submissions yet"
+                description="Find a task, submit work, and we’ll keep the record here."
+              />
             ) : (
               <ul className="space-y-3">
                 {storedEntries.worker.map((entry) => renderTask(entry.id))}

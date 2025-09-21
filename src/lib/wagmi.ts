@@ -3,20 +3,20 @@
 import { env } from "./env";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http } from "wagmi";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 
-if (env.chainId !== sepolia.id) {
+if (env.chainId !== baseSepolia.id) {
   throw new Error(
-    `Configured chain (${env.chainId}) does not match supported Sepolia chain (${sepolia.id})`
+    `Configured chain (${env.chainId}) does not match supported Base Sepolia chain (${baseSepolia.id})`
   );
 }
 
 export const wagmiConfig = getDefaultConfig({
   appName: "AGE Escrow",
-  projectId: env.walletConnectProjectId,
+  projectId: env.walletConnectProjectId || "",
   ssr: true,
-  chains: [sepolia],
+  chains: [baseSepolia],
   transports: {
-    [sepolia.id]: http(env.rpcUrl),
+    [baseSepolia.id]: http(env.rpcUrl),
   },
 });

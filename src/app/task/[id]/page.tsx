@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { env } from "@/lib/env";
 import {
   readTask,
@@ -31,6 +32,7 @@ import {
 import { useToast } from "@/lib/toast";
 import { ZERO_ADDRESS } from "@/lib/constants";
 import { recordTask } from "@/lib/local-tasks";
+import type { Task } from "@/types/task";
 import { TaskStatus } from "@/types/task";
 import {
   readAttestation,
@@ -86,7 +88,7 @@ export default function TaskDetailPage() {
     refetchInterval: 10_000,
   });
 
-  const task = taskQuery.data ?? null;
+  const taskData = taskQuery.data as Task | undefined;
 
   const isAttestationUidFormatValid = /^0x[a-fA-F0-9]{64}$/.test(
     attestationUid
@@ -95,7 +97,8 @@ export default function TaskDetailPage() {
   const attestationQuery = useQuery({
     queryKey: ["attestation", attestationUid],
     queryFn: () => readAttestation(attestationUid as `0x${string}`),
-    enabled: Boolean(attestationUid) && isAttestationUidFormatValid && isConnected,
+    enabled:
+      Boolean(attestationUid) && isAttestationUidFormatValid && isConnected,
     staleTime: 15_000,
   });
 
@@ -114,7 +117,7 @@ export default function TaskDetailPage() {
     }
 
     const attestation = attestationQuery.data;
-    if (!attestation) {
+    if (!attestation || !taskData) {
       checks.push({
         label: "Attestation exists",
         pass: false,
@@ -124,20 +127,22 @@ export default function TaskDetailPage() {
       });
       return checks;
     }
-
-    if (!task) return checks;
-
+    const currentTask = taskData;
     checks.push({
       label: "Schema matches",
       pass: attestation.schema === env.schemaUid,
     });
     checks.push({
       label: "Attestor matches",
-      pass: attestation.attester.toLowerCase() === task.attestor.toLowerCase(),
+      pass:
+        attestation.attester.toLowerCase() ===
+        currentTask.attestor.toLowerCase(),
     });
     checks.push({
       label: "Recipient matches worker",
-      pass: attestation.recipient.toLowerCase() === task.worker.toLowerCase(),
+      pass:
+        attestation.recipient.toLowerCase() ===
+        currentTask.worker.toLowerCase(),
     });
     checks.push({ label: "Not revoked", pass: !isRevoked(attestation) });
     checks.push({ label: "Not expired", pass: !isExpired(attestation) });
@@ -146,15 +151,15 @@ export default function TaskDetailPage() {
     if (decoded) {
       checks.push({
         label: "taskId matches",
-        pass: decoded.taskId === task.id,
+        pass: decoded.taskId === currentTask.id,
       });
       checks.push({
         label: "client matches",
-        pass: decoded.client.toLowerCase() === task.client.toLowerCase(),
+        pass: decoded.client.toLowerCase() === currentTask.client.toLowerCase(),
       });
       checks.push({
         label: "worker matches",
-        pass: decoded.worker.toLowerCase() === task.worker.toLowerCase(),
+        pass: decoded.worker.toLowerCase() === currentTask.worker.toLowerCase(),
       });
     } else {
       checks.push({
@@ -170,19 +175,19 @@ export default function TaskDetailPage() {
     attestationQuery.data,
     attestationQuery.isFetching,
     isAttestationUidFormatValid,
-    task,
+    taskData,
   ]);
 
   const [tokenDecimals, setTokenDecimals] = useState<number>(18);
   useEffect(() => {
     let active = true;
     async function loadDecimals() {
-      if (!task || !task.token || task.token === ZERO_ADDRESS) {
+      if (!taskData || !taskData.token || taskData.token === ZERO_ADDRESS) {
         setTokenDecimals(18);
         return;
       }
       try {
-        const fetched = await getErc20Decimals(task.token);
+        const fetched = await getErc20Decimals(taskData.token);
         if (active) setTokenDecimals(fetched);
       } catch (error) {
         console.warn("Failed to load token decimals", error);
@@ -193,7 +198,7 @@ export default function TaskDetailPage() {
     return () => {
       active = false;
     };
-  }, [task?.token, task]);
+  }, [taskData?.token, taskData]);
 
   if (!isConnected) {
     return (
@@ -218,7 +223,7 @@ export default function TaskDetailPage() {
     );
   }
 
-  if (!task) {
+  if (!taskData) {
     return (
       <Card>
         <CardHeader>
@@ -229,15 +234,15 @@ export default function TaskDetailPage() {
     );
   }
 
-  const amountFormatted = formatUnits(task.amount, tokenDecimals);
-  const deadlineDate = new Date(task.deadline * 1000);
-  const isClient = address?.toLowerCase() === task.client.toLowerCase();
-  const isWorker = address?.toLowerCase() === task.worker.toLowerCase();
-  const isAttestor = address?.toLowerCase() === task.attestor.toLowerCase();
+  const amountFormatted = formatUnits(taskData.amount, tokenDecimals);
+  const deadlineDate = new Date(taskData.deadline * 1000);
+  const isClient = address?.toLowerCase() === taskData.client.toLowerCase();
+  const isWorker = address?.toLowerCase() === taskData.worker.toLowerCase();
+  const isAttestor = address?.toLowerCase() === taskData.attestor.toLowerCase();
 
   async function handleSubmitWork(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!taskId || !task) return;
+    if (!taskId || !taskData) return;
     if (!workUri) {
       notify({ title: "Work URI required", variant: "error" });
       return;
@@ -254,7 +259,7 @@ export default function TaskDetailPage() {
       recordTask({
         id: taskId.toString(),
         role: "worker",
-        address: task.worker,
+        address: taskData.worker,
         chainId: env.chainId,
         createdAt: Date.now(),
       });
@@ -278,7 +283,7 @@ export default function TaskDetailPage() {
 
   async function handleReleasePayment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!taskId || !task) return;
+    if (!taskId || !taskData) return;
     if (!attestationUid) {
       notify({ title: "Attestation UID required", variant: "error" });
       return;
@@ -341,25 +346,27 @@ export default function TaskDetailPage() {
     }
   }
 
-  const status = statusMeta[task.status];
-  const canSubmitWork = isWorker && task.status === TaskStatus.Open;
+  const status = statusMeta[taskData.status];
+  const canSubmitWork = isWorker && taskData.status === TaskStatus.Open;
   const canRelease =
-    (isAttestor || isClient) && task.status === TaskStatus.Submitted;
+    (isAttestor || isClient) && taskData.status === TaskStatus.Submitted;
   const canRefund =
     isClient &&
-    task.status !== TaskStatus.Paid &&
-    Date.now() / 1000 > task.deadline;
-  const releaseBlocked = attestationChecks.some((check) => !check.pass);
+    taskData.status !== TaskStatus.Paid &&
+    Date.now() / 1000 > taskData.deadline;
+  const releaseBlocked =
+    !attestationUid || attestationChecks.some((check) => !check.pass);
 
   return (
     <div className="space-y-10">
       <Card>
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle>Task #{task.id.toString()}</CardTitle>
+            <CardTitle>Task #{taskData.id.toString()}</CardTitle>
             <CardDescription>
-              Client escrow: {shorten(task.client)} · Worker:{" "}
-              {shorten(task.worker)} · Attestor: {shorten(task.attestor)}
+              Client escrow: {shorten(taskData.client)} · Worker:{" "}
+              {shorten(taskData.worker)} · Attestor:{" "}
+              {shorten(taskData.attestor)}
             </CardDescription>
           </div>
           <Badge variant={status?.variant ?? "secondary"}>
@@ -370,20 +377,23 @@ export default function TaskDetailPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <InfoRow
               label="Funding token"
-              value={task.token ? shorten(task.token) : "ETH"}
+              value={taskData.token ? shorten(taskData.token) : "ETH"}
             />
             <InfoRow
               label="Amount"
-              value={`${amountFormatted} ${task.token ? "ERC-20" : "ETH"}`}
+              value={`${amountFormatted} ${taskData.token ? "ERC-20" : "ETH"}`}
             />
             <InfoRow
               label="Deadline"
               value={`${deadlineDate.toLocaleString()}`}
             />
-            <InfoRow label="Work URI" value={task.workUri ?? "Not submitted"} />
+            <InfoRow
+              label="Work URI"
+              value={taskData.workUri ?? "Not submitted"}
+            />
             <InfoRow
               label="Attestation UID"
-              value={task.attestationUid ?? "Pending"}
+              value={taskData.attestationUid ?? "Pending"}
             />
           </div>
         </CardContent>
@@ -411,8 +421,18 @@ export default function TaskDetailPage() {
                   required
                 />
               </div>
-              <Button type="submit" disabled={isSubmittingWork}>
-                {isSubmittingWork ? "Submitting…" : "Submit"}
+              <Button
+                type="submit"
+                disabled={isSubmittingWork}
+                aria-busy={isSubmittingWork}
+              >
+                {isSubmittingWork ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner /> Submitting…
+                  </span>
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </form>
           </CardContent>
@@ -424,10 +444,11 @@ export default function TaskDetailPage() {
           <CardHeader>
             <CardTitle>Release payment</CardTitle>
             <CardDescription>
-              Paste the attestation UID from EAS Scan or the attestation flow.
+              Paste the attestation UID fetched from the official EAS tools to
+              unlock this escrow.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <form onSubmit={handleReleasePayment} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="attestation">
@@ -446,8 +467,25 @@ export default function TaskDetailPage() {
                 checks={attestationChecks}
                 isLoading={attestationQuery.isFetching}
               />
-              <Button type="submit" disabled={isReleasing || releaseBlocked}>
-                {isReleasing ? "Releasing…" : "Release payment"}
+              {releaseBlocked && attestationUid ? (
+                <p className="text-xs text-destructive/80">
+                  Resolve the failing checks above before releasing payment.
+                </p>
+              ) : null}
+              <Button
+                type="submit"
+                disabled={isReleasing || releaseBlocked}
+                aria-busy={isReleasing}
+              >
+                {isReleasing ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner /> Releasing…
+                  </span>
+                ) : releaseBlocked ? (
+                  "Resolve checks first"
+                ) : (
+                  "Release payment"
+                )}
               </Button>
             </form>
           </CardContent>
@@ -467,8 +505,15 @@ export default function TaskDetailPage() {
               variant="destructive"
               onClick={handleRefund}
               disabled={isRefunding}
+              aria-busy={isRefunding}
             >
-              {isRefunding ? "Refunding…" : "Refund"}
+              {isRefunding ? (
+                <span className="flex items-center gap-2">
+                  <Spinner /> Refunding…
+                </span>
+              ) : (
+                "Refund"
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -477,9 +522,9 @@ export default function TaskDetailPage() {
       <Separator />
 
       <div className="grid gap-3 text-sm">
-        <InfoRow label="Client" value={task.client} />
-        <InfoRow label="Worker" value={task.worker} />
-        <InfoRow label="Attestor" value={task.attestor} />
+        <InfoRow label="Client" value={taskData.client} />
+        <InfoRow label="Worker" value={taskData.worker} />
+        <InfoRow label="Attestor" value={taskData.attestor} />
         <InfoRow label="Escrow contract" value={env.escrowAddress} />
       </div>
     </div>

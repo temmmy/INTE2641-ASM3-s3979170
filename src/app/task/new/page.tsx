@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { env } from "@/lib/env";
 import { contracts } from "@/lib/contracts";
 import {
@@ -256,8 +257,17 @@ export default function NewTaskPage() {
             </p>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Processing..." : "Create & fund"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}
+            aria-busy={isSubmitting}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Spinner />
+                Processing…
+              </span>
+            ) : (
+              "Create & fund"
+            )}
           </Button>
         </form>
       </CardContent>

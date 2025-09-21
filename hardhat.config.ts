@@ -4,14 +4,15 @@ import "@nomicfoundation/hardhat-toolbox";
 
 dotenv.config();
 
-const { SEPOLIA_RPC_URL, SEPOLIA_PRIVATE_KEY } = process.env;
+const { BASE_SEPOLIA_RPC_URL, BASE_SEPOLIA_PRIVATE_KEY } = process.env;
 
 const networks: HardhatUserConfig["networks"] = {};
 
-if (SEPOLIA_RPC_URL) {
-  networks!.sepolia = {
-    url: SEPOLIA_RPC_URL,
-    accounts: SEPOLIA_PRIVATE_KEY ? [SEPOLIA_PRIVATE_KEY] : undefined,
+if (BASE_SEPOLIA_RPC_URL) {
+  networks!.baseSepolia = {
+    url: BASE_SEPOLIA_RPC_URL,
+    chainId: 84532,
+    accounts: BASE_SEPOLIA_PRIVATE_KEY ? [BASE_SEPOLIA_PRIVATE_KEY] : undefined,
   };
 }
 
@@ -31,6 +32,10 @@ const config: HardhatUserConfig = {
     tests: "test",
     cache: "hardhat-cache",
     artifacts: "hardhat-artifacts",
+  },
+  typechain: {
+    outDir: "typechain-types",
+    target: "ethers-v6",
   },
 };
 

@@ -14,7 +14,7 @@ Attestation-gated escrow for micro-tasks. Clients fund work, workers submit deli
 
 - Node.js ≥ 18 (Bun optional)
 - npm (or pnpm / yarn / bun) for dependency management
-- Sepolia RPC endpoint (e.g., Alchemy) and funded deployer key for contract deployment
+- Base Sepolia RPC endpoint (e.g., Alchemy) and funded deployer key for contract deployment
 
 Install dependencies:
 
@@ -24,18 +24,18 @@ npm install
 
 ## Environment Variables
 
-Create a `.env` (not committed) with at least:
+Copy `.env.example` to `.env` (or `.env.local` for Next.js) and provide at minimum:
 
 ```bash
 # Hardhat / scripts
-SEPOLIA_RPC_URL="https://eth-sepolia.g.alchemy.com/v2/<API_KEY>"
-SEPOLIA_PRIVATE_KEY="0xabc123..."  # deployer wallet (no 0x? yes include 0x)
-EAS_ADDRESS="0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0"  # Sepolia EAS v0.26
+BASE_SEPOLIA_RPC_URL="https://base-sepolia.g.alchemy.com/v2/<API_KEY>"
+BASE_SEPOLIA_PRIVATE_KEY="0xabc123..."  # deployer wallet (include 0x)
+EAS_ADDRESS="0x..."
 TASK_COMPLETED_SCHEMA_UID="0x..."  # set after schema registration
 
 # Frontend (planned)
-NEXT_PUBLIC_CHAIN_ID="11155111"
-NEXT_PUBLIC_EAS_ADDRESS="0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0"
+NEXT_PUBLIC_CHAIN_ID="84532"
+NEXT_PUBLIC_EAS_ADDRESS="0x..."
 NEXT_PUBLIC_SCHEMA_UID="0x..."
 NEXT_PUBLIC_ESCROW_ADDRESS="0x..."  # Address output from scripts/01_deploy.ts
 NEXT_PUBLIC_ALCHEMY_API_KEY=""
@@ -60,10 +60,10 @@ npx hardhat test
 
 ### Deploy AgeEscrow
 
-Deploy to Sepolia (or any configured network):
+Deploy to Base Sepolia (or any configured network):
 
 ```bash
-npx hardhat run scripts/01_deploy.ts --network sepolia
+npx hardhat run scripts/01_deploy.ts --network baseSepolia
 ```
 
 - Requires `EAS_ADDRESS` and `TASK_COMPLETED_SCHEMA_UID` in the environment
@@ -74,7 +74,7 @@ npx hardhat run scripts/01_deploy.ts --network sepolia
 Registers the canonical `TaskCompleted` schema on the target EAS registry and writes the resulting UID to `deployments/<network>-schema.json`.
 
 ```bash
-npx hardhat run scripts/02_register_schema.ts --network sepolia
+npx hardhat run scripts/02_register_schema.ts --network baseSepolia
 ```
 
 - Uses `EAS_ADDRESS` to resolve the registry on-chain
@@ -83,13 +83,22 @@ npx hardhat run scripts/02_register_schema.ts --network sepolia
 
 ## Frontend Development
 
-Frontend work will follow PRD guidance (Next.js 14 App Router, RainbowKit/wagmi, Tailwind, shadcn/ui). To start the dev server once UI work begins:
+The frontend follows the PRD stack (Next.js 14 App Router, RainbowKit/wagmi, Tailwind, shadcn/ui). Launch the dev server with:
 
 ```bash
 npm run dev
 ```
 
-The app runs at [http://localhost:3000](http://localhost:3000).
+The app runs at [http://localhost:3000](http://localhost:3000). Navigation quick links:
+
+- **Home** — overview of flows, safeguards, and features
+- **Create task** — end-to-end ETH/ERC-20 funding wizard
+- **Issue attestation** — craft TaskCompleted attestations via the EAS SDK
+- **My tasks** — cached list of client/worker tasks with quick links
+
+### Issuing attestations
+
+Use the official EAS tooling (e.g. [https://easscan.org](https://easscan.org)) to craft TaskCompleted attestations. The release flow on this dApp still validates the UID against the schema, attestor, worker, and task bindings before unlocking funds.
 
 ## Security & QA Checklist
 

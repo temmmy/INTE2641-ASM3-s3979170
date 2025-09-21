@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@ethereum-attestation-service/eas-contracts": "^1.8.0",
-    "@ethereum-attestation-service/eas-sdk": "^2.9.1-beta.1",
     "@openzeppelin/contracts": "^5.4.0",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-separator": "^1.1.7",

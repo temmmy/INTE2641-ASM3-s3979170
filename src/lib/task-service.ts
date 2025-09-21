@@ -1,7 +1,7 @@
 "use client";
 
 import { getAccount, readContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 import { erc20Abi } from "viem";
 
 import { wagmiConfig } from "@/lib/wagmi";
@@ -31,7 +31,7 @@ export async function createTask(input: CreateTaskInput) {
       input.amount,
       BigInt(input.deadline),
     ],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   });
 }
 
@@ -41,7 +41,7 @@ export async function fundTask(taskId: bigint, token: Address | null, amount: bi
     abi: ageEscrow.abi,
     functionName: "fundTask",
     args: [taskId],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
     value: token ? undefined : amount,
   });
 }
@@ -52,7 +52,7 @@ export async function submitWork(input: SubmitWorkInput) {
     abi: ageEscrow.abi,
     functionName: "submitWork",
     args: [input.id, input.workUri],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   });
 }
 
@@ -62,7 +62,7 @@ export async function releasePayment(input: ReleasePaymentInput) {
     abi: ageEscrow.abi,
     functionName: "releasePayment",
     args: [input.id, input.attestationUid],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   });
 }
 
@@ -72,7 +72,7 @@ export async function refund(taskId: bigint) {
     abi: ageEscrow.abi,
     functionName: "refund",
     args: [taskId],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   });
 }
 
@@ -94,7 +94,7 @@ export async function readTask(id: bigint): Promise<Task | null> {
     abi: ageEscrow.abi,
     functionName: "tasks",
     args: [id],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   })) as RawTaskStruct;
 
   const [client, worker, attestor, token, amount, deadline, status, workUri, attestationUid] = raw;
@@ -118,7 +118,7 @@ export async function readTask(id: bigint): Promise<Task | null> {
 }
 
 export async function waitForTx(hash: `0x${string}`) {
-  return await waitForTransactionReceipt(wagmiConfig, { hash, chainId: sepolia.id });
+  return await waitForTransactionReceipt(wagmiConfig, { hash, chainId: baseSepolia.id });
 }
 
 export async function getConnectedAddress(): Promise<Address> {
@@ -134,7 +134,7 @@ export async function getErc20Decimals(token: Address): Promise<number> {
     address: token,
     abi: erc20Abi,
     functionName: "decimals",
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   });
   return Number(decimals);
 }
@@ -145,7 +145,7 @@ export async function getErc20Allowance(token: Address, owner: Address, spender:
     abi: erc20Abi,
     functionName: "allowance",
     args: [owner, spender],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   });
 }
 
@@ -155,6 +155,6 @@ export async function approveErc20(token: Address, amount: bigint) {
     abi: erc20Abi,
     functionName: "approve",
     args: [ageEscrow.address, amount],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   });
 }

@@ -1,6 +1,6 @@
 import { decodeAbiParameters } from "viem";
 import { readContract } from "wagmi/actions";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 
 import { wagmiConfig } from "@/lib/wagmi";
 import { env } from "@/lib/env";
@@ -59,7 +59,7 @@ export async function readAttestation(uid: `0x${string}`): Promise<EasAttestatio
     abi: easAbi,
     functionName: "getAttestation",
     args: [uid],
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
   })) as unknown as RawAttestation;
 
   const [attUid] = result;
