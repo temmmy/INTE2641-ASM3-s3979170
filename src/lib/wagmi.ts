@@ -5,7 +5,7 @@ import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 
-if (env.chainId !== baseSepolia.id) {
+if (env.chainId !== baseSepolia.id.toString()) {
   throw new Error(
     `Configured chain (${env.chainId}) does not match supported Base Sepolia chain (${baseSepolia.id})`
   );

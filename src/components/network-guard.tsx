@@ -15,11 +15,11 @@ export function NetworkGuard() {
     return null;
   }
 
-  if (!chainId || chainId === env.chainId) {
+  if (!chainId || chainId === Number(env.chainId)) {
     return null;
   }
 
-  const targetChain = chains.find((chain) => chain.id === env.chainId);
+  const targetChain = chains.find((chain) => chain.id === Number(env.chainId));
 
   return (
     <div className="flex w-full items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -33,7 +33,7 @@ export function NetworkGuard() {
       <Button
         size="sm"
         variant="destructive"
-        onClick={() => switchChain({ chainId: env.chainId })}
+        onClick={() => switchChain({ chainId: Number(env.chainId) })}
         disabled={isPending}
       >
         {isPending ? "Switching" : "Switch"}

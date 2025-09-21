@@ -8,7 +8,13 @@ import { useQueries } from "@tanstack/react-query";
 import { ClipboardList, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -17,8 +23,13 @@ import { listTasksFor } from "@/lib/local-tasks";
 import { readTask } from "@/lib/task-service";
 import { TaskStatus } from "@/types/task";
 
-const statusMeta: Record<TaskStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }>
-  = {
+const statusMeta: Record<
+  TaskStatus,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   [TaskStatus.Open]: { label: "Open", variant: "secondary" },
   [TaskStatus.Submitted]: { label: "Submitted", variant: "outline" },
   [TaskStatus.Paid]: { label: "Paid", variant: "default" },
@@ -32,8 +43,8 @@ export default function MyTasksPage() {
     if (!address || !isConnected) return { client: [], worker: [] };
     const userAddress = address as string;
     return {
-      client: listTasksFor(userAddress, "client", env.chainId),
-      worker: listTasksFor(userAddress, "worker", env.chainId),
+      client: listTasksFor(userAddress, "client", Number(env.chainId)),
+      worker: listTasksFor(userAddress, "worker", Number(env.chainId)),
     };
   }, [address, isConnected]);
 
@@ -79,14 +90,21 @@ export default function MyTasksPage() {
     }
 
     return (
-      <li key={taskId} className="rounded-lg border border-border bg-card/60 p-4 shadow-sm">
+      <li
+        key={taskId}
+        className="rounded-lg border border-border bg-card/60 p-4 shadow-sm"
+      >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Link href={`/task/${taskId}`} className="text-base font-semibold text-primary hover:underline">
+            <Link
+              href={`/task/${taskId}`}
+              className="text-base font-semibold text-primary hover:underline"
+            >
               Task #{taskId}
             </Link>
             <p className="text-xs text-muted-foreground">
-              Worker: {shorten(task.worker)} · Attestor: {shorten(task.attestor)}
+              Worker: {shorten(task.worker)} · Attestor:{" "}
+              {shorten(task.attestor)}
             </p>
           </div>
           <Badge variant={statusMeta[task.status]?.variant ?? "secondary"}>

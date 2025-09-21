@@ -117,6 +117,8 @@ export default function TaskDetailPage() {
     }
 
     const attestation = attestationQuery.data;
+    console.log("Attestation data from query:", attestation);
+
     if (!attestation || !taskData) {
       checks.push({
         label: "Attestation exists",
@@ -127,6 +129,17 @@ export default function TaskDetailPage() {
       });
       return checks;
     }
+
+    // Ensure all required fields exist before using them
+    if (!attestation.attester || !attestation.recipient) {
+      checks.push({
+        label: "Attestation malformed",
+        pass: false,
+        hint: "Missing required attestation fields",
+      });
+      return checks;
+    }
+
     const currentTask = taskData;
     checks.push({
       label: "Schema matches",
@@ -260,7 +273,7 @@ export default function TaskDetailPage() {
         id: taskId.toString(),
         role: "worker",
         address: taskData.worker,
-        chainId: env.chainId,
+        chainId: Number(env.chainId),
         createdAt: Date.now(),
       });
       setWorkUri("");
@@ -525,7 +538,7 @@ export default function TaskDetailPage() {
         <InfoRow label="Client" value={taskData.client} />
         <InfoRow label="Worker" value={taskData.worker} />
         <InfoRow label="Attestor" value={taskData.attestor} />
-        <InfoRow label="Escrow contract" value={env.escrowAddress} />
+        <InfoRow label="Escrow contract" value={env.escrowAddress ?? ""} />
       </div>
     </div>
   );

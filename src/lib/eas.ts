@@ -53,32 +53,64 @@ export type EasAttestation = {
   data: `0x${string}`;
 };
 
-export async function readAttestation(uid: `0x${string}`): Promise<EasAttestation | null> {
-  const result = (await readContract(wagmiConfig, {
-    address: env.easAddress,
-    abi: easAbi,
-    functionName: "getAttestation",
-    args: [uid],
-    chainId: baseSepolia.id,
-  })) as unknown as RawAttestation;
+export async function readAttestation(
+  uid: `0x${string}`
+): Promise<EasAttestation | null> {
+  try {
+    console.log("Reading attestation for UID:", uid);
+    console.log("EAS Address:", env.easAddress);
+    console.log("Chain ID:", baseSepolia.id);
 
-  const [attUid] = result;
-  if (attUid === ZERO_BYTES32) {
+    const result = await readContract(wagmiConfig, {
+      address: env.easAddress,
+      abi: easAbi,
+      functionName: "getAttestation",
+      args: [uid],
+      chainId: baseSepolia.id,
+    });
+
+    console.log("EAS contract call result:", result);
+    console.log("Result type:", typeof result);
+    console.log("Result is array:", Array.isArray(result));
+    console.log("Result properties:", Object.keys(result as any));
+
+    // The result is a tuple object, not an array
+    const attestationTuple = result as any;
+
+    console.log("Raw tuple values:");
+    console.log("uid:", attestationTuple.uid || attestationTuple[0]);
+    console.log("schema:", attestationTuple.schema || attestationTuple[1]);
+    console.log("attester:", attestationTuple.attester || attestationTuple[7]);
+
+    // Check if attestation exists by looking at the uid
+    const attestationUid = attestationTuple.uid || attestationTuple[0];
+    if (!attestationUid || attestationUid === ZERO_BYTES32) {
+      console.log("Attestation not found or is zero");
+      return null;
+    }
+
+    const attestation: EasAttestation = {
+      uid: attestationTuple.uid || attestationTuple[0],
+      schema: attestationTuple.schema || attestationTuple[1],
+      time: attestationTuple.time || attestationTuple[2],
+      expirationTime: attestationTuple.expirationTime || attestationTuple[3],
+      revocationTime: attestationTuple.revocationTime || attestationTuple[4],
+      refUID: attestationTuple.refUID || attestationTuple[5],
+      recipient: attestationTuple.recipient || attestationTuple[6],
+      attester: attestationTuple.attester || attestationTuple[7],
+      revocable:
+        attestationTuple.revocable !== undefined
+          ? attestationTuple.revocable
+          : attestationTuple[8],
+      data: attestationTuple.data || attestationTuple[9],
+    };
+
+    console.log("Built attestation object:", attestation);
+    return attestation;
+  } catch (error) {
+    console.error("Error reading attestation:", error);
     return null;
   }
-
-  return {
-    uid: result[0],
-    schema: result[1],
-    time: result[2],
-    expirationTime: result[3],
-    revocationTime: result[4],
-    refUID: result[5],
-    recipient: result[6],
-    attester: result[7],
-    revocable: result[8],
-    data: result[9],
-  };
 }
 
 export type DecodedTaskAttestation = {
@@ -89,7 +121,9 @@ export type DecodedTaskAttestation = {
   client: `0x${string}`;
 };
 
-export function decodeTaskAttestation(data: `0x${string}`): DecodedTaskAttestation | null {
+export function decodeTaskAttestation(
+  data: `0x${string}`
+): DecodedTaskAttestation | null {
   if (data === "0x" || data === ZERO_BYTES32) {
     return null;
   }
@@ -118,22 +152,12 @@ export function decodeTaskAttestation(data: `0x${string}`): DecodedTaskAttestati
 }
 
 export function isExpired(attestation: EasAttestation): boolean {
-  return attestation.expirationTime !== BigInt(0) && attestation.expirationTime < BigInt(Math.floor(Date.now() / 1000));
+  return (
+    attestation.expirationTime !== BigInt(0) &&
+    attestation.expirationTime < BigInt(Math.floor(Date.now() / 1000))
+  );
 }
 
 export function isRevoked(attestation: EasAttestation): boolean {
-  return attestation.revocationTime !== BigInt(0);
+  return attestation.revocationTime !== undefined;
 }
-
-type RawAttestation = readonly [
-  `0x${string}`,
-  `0x${string}`,
-  bigint,
-  bigint,
-  bigint,
-  `0x${string}`,
-  `0x${string}`,
-  `0x${string}`,
-  boolean,
-  `0x${string}`
-];
