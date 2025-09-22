@@ -2,7 +2,9 @@
 
 ## Student: Nguyen Chi Nghia s3979170
 
-## Date: 21/09/2025
+## Date: 22/09/2025
+
+Link to the youtube video demonstration - https://youtu.be/ny0KMs2MC8Y
 
 This repository contains a complete blockchain application implementing an attestation-gated escrow system for micro-tasks, built for INTE264 Blockchain Technology Fundamentals Assignment 3. AGE (Attestation-Gated Escrow) demonstrates advanced blockchain concepts including smart contract development, EAS (Ethereum Attestation Service) integration, decentralized application architecture, and real-world blockchain deployment on Base Sepolia testnet.
 
@@ -86,6 +88,7 @@ HARDHAT_PRIVATE_KEY=your_private_key_for_deployment
 ### **Smart Contract Architecture**
 
 **AgeEscrow.sol - Main Escrow Contract:**
+
 - Multi-token support (ETH and ERC-20 tokens)
 - Task lifecycle management (Open → Submitted → Paid/Refunded)
 - EAS attestation verification for payment release
@@ -93,10 +96,11 @@ HARDHAT_PRIVATE_KEY=your_private_key_for_deployment
 - Reentrancy protection with OpenZeppelin security
 
 **Key Contract Functions:**
+
 ```solidity
 function createTask(
     address worker,
-    address attestor, 
+    address attestor,
     address token,
     uint256 amount,
     uint64 deadline
@@ -112,11 +116,13 @@ function refund(uint256 taskId) external
 ### **EAS (Ethereum Attestation Service) Integration**
 
 **Schema Registration:**
+
 - Custom TaskCompleted schema for work verification
 - Schema UID: `0x8c1564efc1c47e9d05a0b5a03889a5ea98160efcb14cf8468980b7b20f0bb72d`
 - Structured attestation data with task ID, quality score, and metadata
 
 **Attestation Validation:**
+
 - Schema matching verification
 - Attestor authorization checks
 - Task-specific binding validation
@@ -125,12 +131,14 @@ function refund(uint256 taskId) external
 ### **Frontend dApp Features**
 
 **Next.js 14 Application:**
+
 - App Router architecture with TypeScript
 - RainbowKit wallet connection with multi-wallet support
 - Real-time transaction status with toast notifications
 - Responsive design with Tailwind CSS and shadcn/ui components
 
 **User Flows:**
+
 1. **Task Creation** - Clients create and fund escrow tasks
 2. **Work Submission** - Workers submit completion evidence
 3. **Attestation** - Attestors verify and attest to work quality
@@ -140,18 +148,21 @@ function refund(uint256 taskId) external
 ### **Multi-Role System**
 
 **Client Role:**
+
 - Create tasks with funding
-- Set deadlines and attestor requirements  
+- Set deadlines and attestor requirements
 - Claim refunds for unattested work
 - View task portfolio and payment history
 
 **Worker Role:**
+
 - Accept assigned tasks
 - Submit work completion evidence
 - Receive attestation-gated payments
 - Track work submission status
 
 **Attestor Role:**
+
 - Review submitted work
 - Issue EAS attestations for quality verification
 - Provide feedback and quality scores
@@ -189,7 +200,7 @@ npx hardhat compile
 ### Test Categories
 
 - **Unit Tests**: Individual contract function testing
-- **Integration Tests**: EAS integration and multi-contract interactions  
+- **Integration Tests**: EAS integration and multi-contract interactions
 - **Security Tests**: Reentrancy protection and access control validation
 - **Economic Tests**: Payment calculations and token handling
 - **Edge Cases**: Deadline handling, invalid attestations, and error conditions
@@ -199,11 +210,13 @@ npx hardhat compile
 ### **Smart Contract Layer**
 
 **Core Contracts:**
+
 - `AgeEscrow.sol` - Main escrow logic with EAS integration
 - Uses OpenZeppelin libraries for security and token handling
 - Integrates with EAS contracts for attestation verification
 
 **Security Features:**
+
 - ReentrancyGuard protection on all payment functions
 - SafeERC20 for secure token transfers
 - Comprehensive input validation and access controls
@@ -212,6 +225,7 @@ npx hardhat compile
 ### **Frontend Architecture**
 
 **Next.js Application Structure:**
+
 ```
 src/
 ├── app/                    # App Router pages
@@ -229,6 +243,7 @@ src/
 ```
 
 **Key Dependencies:**
+
 - **wagmi + viem** - Ethereum interactions and contract calls
 - **RainbowKit** - Wallet connection and authentication
 - **shadcn/ui** - Modern UI component library
@@ -237,12 +252,14 @@ src/
 ### **Blockchain Infrastructure**
 
 **Base Sepolia Deployment:**
+
 - Network: Base Sepolia Testnet (Chain ID: 84532)
 - RPC: Alchemy Base Sepolia endpoint
 - EAS Protocol: Native Base Sepolia EAS contracts
 - Contract Verification: Etherscan-compatible verification
 
 **EAS Protocol Integration:**
+
 - Schema Registry for custom attestation formats
 - On-chain attestation storage and verification
 - Attestation querying and validation utilities
@@ -253,11 +270,11 @@ src/
 ```bash
 # Frontend Development
 npm run dev              # Start Next.js development server
-npm run build           # Build production application  
+npm run build           # Build production application
 npm start              # Start production server
 npm run lint           # Run ESLint code quality checks
 
-# Smart Contract Development  
+# Smart Contract Development
 npx hardhat compile        # Compile Solidity contracts
 npx hardhat run scripts/01_deploy.ts --network baseSepolia  # Deploy contracts
 npx hardhat test          # Run comprehensive test suite
@@ -270,18 +287,21 @@ npx hardhat run scripts/02_register_schema.ts --network baseSepolia  # Register 
 ## 📊 Implementation Statistics
 
 ### **Smart Contract Metrics**
+
 - **Contract Size**: 2.1KB (optimized for gas efficiency)
 - **Gas Usage**: ~200K gas for task creation, ~150K for payments
 - **Security Features**: 5+ OpenZeppelin security modules integrated
 - **Test Coverage**: 17 tests covering all critical paths
 
 ### **Frontend Performance**
+
 - **Bundle Size**: ~1.2MB total (code-split and optimized)
 - **Load Time**: <2s on Base Sepolia testnet
 - **Transaction Speed**: ~2-5s average confirmation time
 - **UI Responsiveness**: Real-time status updates with optimistic UI
 
 ### **EAS Integration Metrics**
+
 - **Schema Validation**: 100% attestation verification accuracy
 - **Attestation Speed**: ~3-5s for on-chain attestation creation
 - **Query Performance**: <1s for attestation retrieval and validation
@@ -290,6 +310,7 @@ npx hardhat run scripts/02_register_schema.ts --network baseSepolia  # Register 
 ## 🔒 Security Model
 
 ### **Smart Contract Security**
+
 - **Reentrancy Protection**: OpenZeppelin ReentrancyGuard on all payment functions
 - **Access Control**: Role-based permissions for task operations
 - **Input Validation**: Comprehensive parameter validation and bounds checking
@@ -297,6 +318,7 @@ npx hardhat run scripts/02_register_schema.ts --network baseSepolia  # Register 
 - **Time-based Security**: Deadline enforcement with block timestamp validation
 
 ### **EAS Integration Security**
+
 - **Schema Validation**: Strict schema UID matching for attestation acceptance
 - **Attestor Authorization**: Verification that only designated attestors can attest
 - **Task Binding**: Cryptographic binding between attestations and specific tasks
@@ -304,6 +326,7 @@ npx hardhat run scripts/02_register_schema.ts --network baseSepolia  # Register 
 - **Expiration Handling**: Automatic invalidation of expired attestations
 
 ### **Frontend Security**
+
 - **Wallet Security**: Secure wallet connection with RainbowKit standards
 - **Transaction Safety**: Multiple confirmation steps for high-value operations
 - **Network Enforcement**: Automatic Base Sepolia network validation
@@ -315,16 +338,19 @@ npx hardhat run scripts/02_register_schema.ts --network baseSepolia  # Register 
 ### **Live Deployment Details**
 
 **Network**: Base Sepolia Testnet
+
 - **Chain ID**: 84532
 - **RPC URL**: https://sepolia.base.org
 - **Block Explorer**: https://sepolia.basescan.org
 
 **Contract Addresses**:
+
 - **AgeEscrow**: `0x0562E1f50151AFEaFF9d06CB97c36101a2243f2F`
 - **EAS Registry**: `0x4200000000000000000000000000000000000021`
 - **Schema UID**: `0x8c1564efc1c47e9d05a0b5a03889a5ea98160efcb14cf8468980b7b20f0bb72d`
 
 **Deployment Verification**:
+
 - ✅ Contract verified on BaseScan
 - ✅ EAS schema registered and active
 - ✅ All functions tested on testnet
@@ -358,24 +384,24 @@ A complete AGE transaction flow:
 
 ```
 1. 🏗️  TASK CREATION
-   Client: Creates task "Build landing page" 
+   Client: Creates task "Build landing page"
    Amount: 0.1 ETH
    Deadline: 7 days
    Attestor: project-manager.eth
-   
+
 2. 💰 FUNDING
    Status: ✅ Task funded (Tx: 0xabc123...)
    Escrow: 0.1 ETH locked in contract
-   
-3. 🔨 WORK SUBMISSION  
+
+3. 🔨 WORK SUBMISSION
    Worker: Submits IPFS hash of completed website
    Status: ✅ Work submitted (Tx: 0xdef456...)
-   
+
 4. ✍️  ATTESTATION
    Attestor: Reviews work and creates EAS attestation
    Quality Score: 95/100
    Status: ✅ Attested (Attestation UID: 0x789xyz...)
-   
+
 5. 💸 PAYMENT RELEASE
    Contract: Automatically validates attestation
    Payment: 0.1 ETH released to worker
@@ -385,7 +411,7 @@ A complete AGE transaction flow:
 ## 📚 Academic Requirements Compliance
 
 - ✅ **Blockchain Application**: Complete dApp with smart contracts and frontend
-- ✅ **Real-world Deployment**: Live on Base Sepolia testnet with verified contracts  
+- ✅ **Real-world Deployment**: Live on Base Sepolia testnet with verified contracts
 - ✅ **Advanced Features**: EAS integration, multi-token support, role-based access
 - ✅ **Security Implementation**: OpenZeppelin standards, comprehensive testing
 - ✅ **User Experience**: Professional UI with wallet integration and transaction handling
@@ -400,7 +426,7 @@ This project was developed with assistance from Claude Sonnet 4 for:
 - Code formatting and improving code structure readability
 - Bug identification and debugging assistance for EAS integration issues
 - Smart contract security review and OpenZeppelin integration guidance
-- EAS protocol integration patterns and best practices  
+- EAS protocol integration patterns and best practices
 - Frontend architecture decisions and React/Next.js optimization
 - Testing strategy development and comprehensive test case design
 - Documentation enhancement and technical writing improvements
